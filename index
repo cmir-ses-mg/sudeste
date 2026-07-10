@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang='pt-BR'>
 <head>
 <meta charset='UTF-8'>
@@ -273,7 +273,7 @@
 <div class='app-header'>
   <div class='app-title'>Plano de Investimento — Macrorregião Sudeste</div>
   <div id='nav-dashboard'>
-    <button class='nav-btn' onclick="mostrarPagina('depara')">Ver De/Para →</button>
+    <button class='nav-btn' onclick="mostrarPagina('depara')">Ver Planejado x Executado →</button>
   </div>
   <div id='nav-depara' style='display:none'>
     <button class='nav-btn voltar' onclick="mostrarPagina('dashboard')">← Voltar ao início</button>
