@@ -1,0 +1,72 @@
+name: Atualizar Dashboard (Netlify)
+
+# Dispara sozinho toda vez que você sobe/substitui a planilha na pasta
+# dados/ (arrastar e soltar pelo GitHub, ou git push normal) — e também
+# pode ser disparado manualmente (aba "Actions" do repositório →
+# "Atualizar Dashboard (Netlify)" → "Run workflow").
+#
+# Este repositório NÃO usa GitHub Pages — ele só guarda o código, a
+# planilha e roda o robô. O site publicado de verdade é o
+# https://planosudeste.netlify.app/, atualizado por este workflow
+# direto via API do Netlify.
+on:
+  push:
+    paths:
+      - 'dados/*.xlsx'
+  workflow_dispatch: {}
+
+# Permissão necessária para o workflow poder commitar de volta no repositório
+# (guardamos o index.html gerado só como histórico/backup)
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: pip install openpyxl --quiet
+
+      - name: Localizar a planilha em dados/
+        id: planilha
+        run: |
+          ARQ=$(ls dados/*.xlsx 2>/dev/null | head -n 1)
+          if [ -z "$ARQ" ]; then
+            echo "ERRO: nenhum .xlsx encontrado em dados/. Suba a planilha nessa pasta antes de rodar."
+            exit 1
+          fi
+          echo "Usando: $ARQ"
+          echo "arquivo=$ARQ" >> "$GITHUB_OUTPUT"
+
+      - name: Gerar o index.html
+        run: python3 scripts/build_dashboard.py "${{ steps.planilha.outputs.arquivo }}" index.html
+
+      - name: Publicar no Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "ERRO: configure os segredos NETLIFY_AUTH_TOKEN e NETLIFY_SITE_ID"
+            exit 1
+          fi
+          npm install -g netlify-cli --silent
+          mkdir -p deploy
+          cp index.html deploy/
+          netlify deploy --prod --dir=deploy --site="$NETLIFY_SITE_ID"
+
+      - name: Guardar o index.html no repositório (histórico/backup)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "Atualização automática ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git push
