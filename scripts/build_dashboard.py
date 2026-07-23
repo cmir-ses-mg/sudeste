@@ -102,10 +102,70 @@ def san(v):
 # Carga dos dados
 # ─────────────────────────────────────────────────────────────────────
 
+# Ordem canônica que o resto do script espera de cada linha do Consolidado
+# (posição -> nome exato do cabeçalho na planilha). A posição 8 (status) usa
+# "prefixo" porque o nome dessa coluna já mudou antes (ex.: "STATUS (03/07)"),
+# então localizamos por começar com "STATUS" em vez de exigir o texto exato.
+CAMPOS_CONSOLIDADO = [
+    ('INSTRUMENTO', 'exato'),
+    ('NÚMERO DA INDICAÇÃO', 'exato'),
+    ('OBJETO', 'exato'),
+    ('MUNICÍPIO', 'exato'),
+    ('BENEFICIÁRIO', 'exato'),
+    (None, None),  # posição não utilizada pelo restante do script
+    ('VALOR DO PLEITO', 'exato'),
+    ('PADRINHO', 'exato'),  # não é exibido, mas mantido na posição por compatibilidade
+    ('STATUS', 'prefixo'),
+    ('ETAPA DE CELEBRAÇÃO', 'exato'),
+    ('DETALHAMENTO ETAPA DE CELEBRAÇÃO', 'exato'),
+    ('SEI', 'exato'),
+    ('FONTE FINAL', 'exato'),
+    ('ACORDO SUDESTE', 'exato'),
+]
+
+
+def remapear_consolidado(ws):
+    """Lê a aba Consolidado pelo NOME do cabeçalho (não pela posição da
+    coluna), e devolve cada linha já reordenada na ordem canônica que o
+    resto do script espera. Assim, se alguém reordenar, inserir ou remover
+    uma coluna na planilha, o script continua funcionando — só quebra de
+    verdade se uma coluna essencial for renomeada de um jeito irreconhecível."""
+    headers = [norm(c.value) for c in ws[1]]
+
+    def localizar(nome, modo):
+        if nome is None:
+            return None
+        if modo == 'exato':
+            for i, h in enumerate(headers):
+                if h == nome:
+                    return i
+        elif modo == 'prefixo':
+            for i, h in enumerate(headers):
+                if h.startswith(nome):
+                    return i
+        return None
+
+    indices = [localizar(nome, modo) for nome, modo in CAMPOS_CONSOLIDADO]
+
+    essenciais = {'MUNICÍPIO': 3, 'VALOR DO PLEITO': 6, 'STATUS': 8}
+    faltando = [nome for nome, pos in essenciais.items() if indices[pos] is None]
+    if faltando:
+        raise RuntimeError(
+            f"Não encontrei a(s) coluna(s) essencial(is) {faltando} na aba Consolidado. "
+            f"Cabeçalhos encontrados: {[c.value for c in ws[1]]}"
+        )
+
+    linhas = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        nova = tuple(row[i] if i is not None and i < len(row) else None for i in indices)
+        linhas.append(nova)
+    return linhas
+
+
 def carregar_dados(caminho_xlsx):
     wb = openpyxl.load_workbook(caminho_xlsx, data_only=True)
 
-    cons_all = [r for r in wb['Consolidado'].iter_rows(min_row=2, values_only=True) if r[3]]
+    cons_all = [r for r in remapear_consolidado(wb['Consolidado']) if r[3]]
     cons = [r for r in cons_all if norm(r[13]) not in ('NÃO', 'NAO')]
 
     plano = [r for r in wb['Plano Sudeste'].iter_rows(min_row=2, values_only=True) if r[0]]
