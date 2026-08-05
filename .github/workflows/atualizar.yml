@@ -1,5 +1,4 @@
 name: Atualizar Dashboard (Netlify)
-
 # Dispara sozinho toda vez que você sobe/substitui a planilha na pasta
 # dados/ (arrastar e soltar pelo GitHub, ou git push normal) — e também
 # pode ser disparado manualmente (aba "Actions" do repositório →
@@ -9,32 +8,32 @@ name: Atualizar Dashboard (Netlify)
 # planilha e roda o robô. O site publicado de verdade é o
 # https://planosudeste.netlify.app/, atualizado por este workflow
 # direto via API do Netlify.
+#
+# Publica DUAS páginas:
+#   index.html    → dashboard (com botão flutuante para o boletim)
+#   boletim.html  → boletim de acompanhamento, pronto para imprimir/PDF
 on:
   push:
     paths:
       - 'dados/*.xlsx'
+      - 'scripts/*.py'
   workflow_dispatch: {}
-
 # Permissão necessária para o workflow poder commitar de volta no repositório
-# (guardamos o index.html gerado só como histórico/backup)
+# (guardamos os arquivos gerados só como histórico/backup)
 permissions:
   contents: write
-
 jobs:
   atualizar:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar o repositório
         uses: actions/checkout@v4
-
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Instalar dependências
         run: pip install openpyxl --quiet
-
       - name: Localizar a planilha em dados/
         id: planilha
         run: |
@@ -45,10 +44,12 @@ jobs:
           fi
           echo "Usando: $ARQ"
           echo "arquivo=$ARQ" >> "$GITHUB_OUTPUT"
-
       - name: Gerar o index.html
         run: python3 scripts/build_dashboard.py "${{ steps.planilha.outputs.arquivo }}" index.html
-
+      # Gera o boletim a partir da MESMA planilha e injeta no index.html o
+      # botão flutuante "Boletim de Acompanhamento" (não duplica se já existir).
+      - name: Gerar o boletim e injetar o botão no dashboard
+        run: python3 scripts/build_boletim_sudeste.py "${{ steps.planilha.outputs.arquivo }}" boletim.html index.html
       - name: Publicar no Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -61,12 +62,12 @@ jobs:
           npm install -g netlify-cli --silent
           mkdir -p deploy
           cp index.html deploy/
+          cp boletim.html deploy/
           netlify deploy --prod --dir=deploy --site="$NETLIFY_SITE_ID"
-
-      - name: Guardar o index.html no repositório (histórico/backup)
+      - name: Guardar os arquivos no repositório (histórico/backup)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add index.html boletim.html
           git diff --staged --quiet || git commit -m "Atualização automática ($(date -u +'%Y-%m-%d %H:%M UTC'))"
           git push
