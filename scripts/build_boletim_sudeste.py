@@ -539,7 +539,7 @@ html = f"""<!DOCTYPE html>
   * {{ box-sizing:border-box; margin:0; }}
   html {{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
   body {{ font-family:'Source Serif 4','Cambria',Georgia,serif; color:var(--tinta); background:#E4E9ED;
-         font-size:11.5pt; line-height:1.6; }}
+         font-size:10.6pt; line-height:1.55; }}
   .arch {{ font-family:'Archivo','Segoe UI','Helvetica Neue',Arial,sans-serif; }}
   .pagina {{ background:#fff; width:210mm; min-height:297mm; margin:10mm auto; padding:16mm 17mm 14mm; display:flex; flex-direction:column;
              box-shadow:0 2px 18px rgba(22,30,40,.14); position:relative; }}
@@ -550,7 +550,7 @@ html = f"""<!DOCTYPE html>
   .titulo {{ font-family:'Archivo'; font-weight:800; font-stretch:87%; font-size:23pt; line-height:1.05;
              letter-spacing:-.01em; color:var(--serra-esc); margin:5mm 0 1.5mm; }}
   .titulo em {{ font-style:normal; color:var(--barro); }}
-  .subtitulo {{ font-family:'Archivo'; font-size:10pt; font-weight:500; color:var(--cinza); margin-bottom:4mm; }}
+  .subtitulo {{ font-family:'Archivo'; font-size:9.2pt; font-weight:500; color:var(--cinza); margin-bottom:4mm; }}
   .sec {{ margin-top:5mm; }}
   .eyebrow {{ font-family:'Archivo'; font-size:8.5pt; font-weight:700; letter-spacing:.16em;
               text-transform:uppercase; color:var(--serra); display:flex; align-items:center; gap:8px; margin-bottom:2.8mm; }}
@@ -559,7 +559,7 @@ html = f"""<!DOCTYPE html>
 
   /* barra empilhada — mesmo desenho do dashboard */
   .tot-lbl {{ font-family:'Archivo'; font-size:8.5pt; color:var(--cinza-cl); margin-bottom:.6mm; }}
-  .tot-val {{ font-family:'Archivo'; font-size:19pt; font-weight:600; color:var(--tinta); letter-spacing:-.01em; }}
+  .tot-val {{ font-family:'Archivo'; font-size:17pt; font-weight:600; color:var(--tinta); letter-spacing:-.01em; }}
   .exec-hdr {{ display:flex; justify-content:space-between; align-items:baseline; margin:3.5mm 0 1.6mm; }}
   .exec-titulo {{ font-family:'Archivo'; font-size:8.5pt; color:var(--cinza-cl); }}
   .exec-pct {{ font-family:'Archivo'; font-size:12pt; font-weight:700; color:#1D9E75; }}
@@ -569,13 +569,14 @@ html = f"""<!DOCTYPE html>
   .seg-tram {{ background:#EF9F27; z-index:1; }}
   .seg-pago {{ background:#1D9E75; z-index:2; }}
   .seg-map {{ border-top:.8mm dashed #378ADD; border-bottom:.8mm dashed #378ADD; z-index:3; }}
-  .exec-legenda {{ display:flex; flex-wrap:wrap; gap:5mm; font-family:'Archivo'; font-size:8.2pt; color:var(--cinza); }}
-  .leg-item {{ display:flex; align-items:center; gap:1.4mm; }}
+  .exec-legenda {{ display:flex; flex-wrap:nowrap; gap:4mm; font-family:'Archivo'; font-size:7.4pt;
+                   color:var(--cinza); white-space:nowrap; }}
+  .leg-item {{ display:flex; align-items:center; gap:1.2mm; min-width:0; }}
   .leg-item b {{ color:var(--tinta); font-weight:600; }}
-  .leg-dot {{ width:2.4mm; height:2.4mm; border-radius:50%; flex-shrink:0; }}
+  .leg-dot {{ width:2mm; height:2mm; border-radius:50%; flex-shrink:0; }}
   .d-prev {{ background:#EEF2F5; border:.3mm solid #D9E1E8; }}
   .d-map {{ background:#378ADD; }} .d-tram {{ background:#EF9F27; }} .d-pago {{ background:#1D9E75; }}
-  .marco {{ font-family:'Archivo'; font-size:8.5pt; color:var(--cinza); margin-top:2.5mm; line-height:1.6; }}
+  .marco {{ font-family:'Archivo'; font-size:8pt; color:var(--cinza); margin-top:2.5mm; line-height:1.6; }}
   .marco b {{ color:var(--serra-esc); }}
   .tot {{ font-weight:700; }}
   .f95, .f10 {{ color:var(--serra); }}
@@ -587,18 +588,18 @@ html = f"""<!DOCTYPE html>
          padding:2.6mm 3.4mm; margin-bottom:2mm; }}
   .pl-h {{ display:flex; align-items:baseline; gap:3mm; padding-bottom:1.6mm;
            margin-bottom:1.6mm; border-bottom:.5px solid #F4E6DC; }}
-  .pl-m {{ font-family:'Archivo'; font-weight:700; font-size:9.6pt; color:var(--tinta); }}
+  .pl-m {{ font-family:'Archivo'; font-weight:700; font-size:9pt; color:var(--tinta); }}
   .pl-c {{ font-family:'Archivo'; font-size:7.6pt; color:var(--cinza-cl); }}
-  .pl-v {{ font-family:'Archivo'; font-weight:700; font-size:9.4pt; color:#8A3A15; margin-left:auto; }}
+  .pl-v {{ font-family:'Archivo'; font-weight:700; font-size:8.8pt; color:#8A3A15; margin-left:auto; }}
   .it {{ display:flex; justify-content:space-between; align-items:flex-start; gap:4mm; padding:1.1mm 0; }}
   .it + .it {{ border-top:.5px solid #FAF2EC; }}
   .it-esq {{ min-width:0; }}
-  .it-d {{ font-family:'Source Serif 4'; font-size:9.2pt; color:var(--tinta); line-height:1.4; }}
+  .it-d {{ font-family:'Source Serif 4'; font-size:8.6pt; color:var(--tinta); line-height:1.4; }}
   .it-b {{ font-family:'Archivo'; font-size:7.8pt; color:var(--cinza); margin-top:.5mm;
            display:flex; align-items:center; gap:2mm; flex-wrap:wrap; }}
   .it-obs {{ display:block; font-family:'Source Serif 4'; font-size:8.2pt; font-style:italic;
              color:var(--cinza-cl); margin-top:.5mm; line-height:1.4; }}
-  .it-v {{ font-family:'Archivo'; font-size:9pt; font-weight:600; color:var(--tinta); white-space:nowrap; }}
+  .it-v {{ font-family:'Archivo'; font-size:8.4pt; font-weight:600; color:var(--tinta); white-space:nowrap; }}
   .st-chip {{ font-family:'Archivo'; font-size:7.2pt; font-weight:700; color:#8A5E00;
               background:var(--ambar-cl); border-radius:8px; padding:.3mm 1.8mm; }}
   .bl-lista {{ margin-top:2.5mm; padding-left:24mm; }}
@@ -610,8 +611,8 @@ html = f"""<!DOCTYPE html>
   .tmun tr.sem td:first-child {{ border-left-color:#DDE3E8; }}
   .tmun tr.sem td {{ color:var(--cinza-cl); }}
   .tmun .sub {{ display:block; font-size:7.8pt; }}
-  table {{ width:100%; border-collapse:collapse; font-family:'Archivo'; font-size:9.2pt; }}
-  th {{ text-align:left; font-size:7.5pt; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  table {{ width:100%; border-collapse:collapse; font-family:'Archivo'; font-size:8.6pt; }}
+  th {{ text-align:left; font-size:7.1pt; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
         color:var(--cinza); padding:0 3mm 1.8mm 0; border-bottom:1.5px solid var(--tinta); }}
   th.num {{ text-align:right; }}
   td {{ padding:1.55mm 3mm 1.55mm 0; border-bottom:.5px solid var(--fio); vertical-align:top; }}
@@ -619,7 +620,7 @@ html = f"""<!DOCTYPE html>
   .nome {{ font-weight:600; }}
   .num {{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }}
   .sub {{ color:var(--cinza-cl); font-weight:400; }}
-  .fin {{ font-family:'Source Serif 4'; font-size:9pt; color:var(--cinza); line-height:1.45; }}
+  .fin {{ font-family:'Source Serif 4'; font-size:8.4pt; color:var(--cinza); line-height:1.45; }}
   .fin i {{ color:var(--cinza-cl); }}
   .barcel {{ width:30mm; }}
   .pct {{ font-weight:700; display:block; margin-bottom:.8mm; font-variant-numeric:tabular-nums; }}
@@ -653,7 +654,7 @@ html = f"""<!DOCTYPE html>
   .btn-print:hover {{ background:var(--serra-esc); }}
   @page {{ size:A4; margin:15mm 16mm 13mm; }}
   @media print {{
-    body {{ background:#fff; font-size:10.9pt; }}
+    body {{ background:#fff; font-size:10.2pt; }}
     .pagina {{ margin:0; padding:0; box-shadow:none; width:auto; }}
     .btn-print {{ display:none; }}
     .eyebrow, .fr, .exec-bar-wrap, .exec-legenda, tr, thead, .pl, .it {{ page-break-inside:avoid; break-inside:avoid; }}
@@ -702,7 +703,11 @@ html = f"""<!DOCTYPE html>
       <div class="leg-item"><span class="leg-dot d-tram"></span>Em tramitação <b>{brl(nao_pago,0)}</b></div>
       <div class="leg-item"><span class="leg-dot d-pago"></span>Pago <b>{brl(pago,0)}</b></div>
     </div>
-    
+    <div class="marco">Total previsto no Plano Sudeste: <b>{brl(plano_total,0)}</b> em {len(pl_linhas)} itens.
+    Desse total, <b>{brl(mapeado,0)}</b> ({pct(p_map,0)}) já viraram indicações na Fonte 95 — {n_ind} no total, das quais
+    {n_pago} pagas. Os {brl(plano_total-mapeado,0)} restantes não têm indicação correspondente, seja por desistência
+    ou exclusão ({plano_fora_n} itens, {brl(plano_fora_v,0)}), seja por destino ainda não definido.</div>
+  </div>
 
   <div class="sec">
     
@@ -724,10 +729,12 @@ html = f"""<!DOCTYPE html>
       <thead><tr><th>Município</th><th class="num">Previsto no plano</th><th class="num">Mapeado</th><th class="num">Pago</th><th>Execução</th></tr></thead>
       <tbody>{linhas_mun}</tbody>
     </table>
-    
+    <div class="marco">Descontados os {plano_fora_n} itens fora do plano ({brl(plano_fora_v,0)}), a carteira ativa é de
+    <b>{brl(carteira_ativa,0)}</b>. {f"Foram desconsideradas {fora_acordo} indicações marcadas como fora do Acordo Sudeste." if fora_acordo else ""}</div>
+  </div>
 
   <div class="rodape">
-    <span>Fonte: Monitoramento Fonte 95 (ASPAR)</span>
+    <span>Fonte: Monitoramento Fonte 95.xlsx (ASPAR)</span>
     <span>Elaboração: CMIR / Subsecretaria de Regionalização — SES-MG</span>
   </div>
 </div>
