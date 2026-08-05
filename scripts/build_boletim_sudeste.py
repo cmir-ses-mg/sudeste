@@ -703,11 +703,7 @@ html = f"""<!DOCTYPE html>
       <div class="leg-item"><span class="leg-dot d-tram"></span>Em tramitação <b>{brl(nao_pago,0)}</b></div>
       <div class="leg-item"><span class="leg-dot d-pago"></span>Pago <b>{brl(pago,0)}</b></div>
     </div>
-    <div class="marco">Total previsto no Plano Sudeste: <b>{brl(plano_total,0)}</b> em {len(pl_linhas)} itens.
-    Desse total, <b>{brl(mapeado,0)}</b> ({pct(p_map,0)}) já viraram indicações na Fonte 95 — {n_ind} no total, das quais
-    {n_pago} pagas. Os {brl(plano_total-mapeado,0)} restantes não têm indicação correspondente, seja por desistência
-    ou exclusão ({plano_fora_n} itens, {brl(plano_fora_v,0)}), seja por destino ainda não definido.</div>
-  </div>
+    
 
   <div class="sec">
     
