@@ -343,19 +343,13 @@ def categoria(obj):
     return "Outros objetos"
 
 
-def objetos_status(st, n=3):
-    """Top categorias do status, com a quantidade de indicações em cada uma."""
-    cats = defaultdict(lambda: [0, 0.0])
+def objetos_status(st, n=4):
+    """Categorias do status, da maior para a menor em valor, separadas por barra."""
+    cats = defaultdict(float)
     for o, val in obj_status[st].items():
-        c = categoria(o)
-        cats[c][0] += obj_qtd[st].get(o, 1)
-        cats[c][1] += val
-    ordenadas = sorted(cats.items(), key=lambda x: -x[1][1])
-    partes = [f"{c} <span class='cq'>{q}</span>" for c, (q, v) in ordenadas[:n]]
-    resto = len(ordenadas) - n
-    if resto > 0:
-        partes.append(f"<span class='cq'>+{resto} categoria{'s' if resto > 1 else ''}</span>")
-    return " · ".join(partes)
+        cats[categoria(o)] += val
+    ordenadas = [c for c, _ in sorted(cats.items(), key=lambda x: -x[1])]
+    return " / ".join(ordenadas[:n])
 
 
 _ordem = [k for k in ORDEM_EXEC if k in por_status_v] + \
@@ -587,8 +581,6 @@ html = f"""<!DOCTYPE html>
   .f95, .f10 {{ color:var(--serra); }}
   .qtd {{ display:block; font-size:7.6pt; font-weight:400; color:var(--cinza-cl); margin-top:.3mm; }}
   .vazio {{ color:#C7D0D8; }}
-  .cq {{ font-family:'Archivo'; font-size:7.6pt; font-weight:700; color:var(--serra);
-         background:var(--serra-cl); border-radius:8px; padding:.2mm 1.4mm; }}
   tr.soma td {{ border-top:1.2px solid var(--tinta); border-bottom:none;
                 font-weight:700; color:var(--tinta); padding-top:2.4mm; }}
   .pl {{ background:#fff; border:.5px solid #F0D9CB; border-radius:3px;
@@ -689,7 +681,7 @@ html = f"""<!DOCTYPE html>
   </div>
   <hr class="fio-top">
   <div class="titulo">Plano de Investimentos<br>da Macrorregião <em>Sudeste</em></div>
-  <div class="subtitulo arch">Emendas Fonte 95 — {n_ind} indicações monitoradas · {len(pl_linhas)} itens previstos no plano · posição de {data_ext}</div>
+  
 
   <div class="sec">
     <div class="eyebrow arch">O curso do recurso</div>
@@ -710,16 +702,12 @@ html = f"""<!DOCTYPE html>
       <div class="leg-item"><span class="leg-dot d-tram"></span>Em tramitação <b>{brl(nao_pago,0)}</b></div>
       <div class="leg-item"><span class="leg-dot d-pago"></span>Pago <b>{brl(pago,0)}</b></div>
     </div>
-    <div class="marco">Total previsto no Plano Sudeste: <b>{brl(plano_total,0)}</b> em {len(pl_linhas)} itens.
-    Desse total, <b>{brl(mapeado,0)}</b> ({pct(p_map,0)}) já viraram indicações na Fonte 95 — {n_ind} no total, das quais
-    {n_pago} pagas. Os {brl(plano_total-mapeado,0)} restantes não têm indicação correspondente, seja por desistência
-    ou exclusão ({plano_fora_n} itens, {brl(plano_fora_v,0)}), seja por destino ainda não definido.</div>
-  </div>
+    
 
   <div class="sec">
-    <div class="eyebrow arch">Situação das indicações</div>
+    
     <table>
-      <thead><tr><th>Status em {DATA_STATUS}</th><th class="num">Ind.</th><th class="num">Valor total</th><th class="num">Fonte 95</th><th class="num">Fonte 10</th><th>Objetos por categoria</th></tr></thead>
+      <thead><tr><th>Status em {DATA_STATUS}</th><th class="num">Ind.</th><th class="num">Valor total</th><th class="num">Fonte 95</th><th class="num">Fonte 10</th><th>Principais Objetos</th></tr></thead>
       <tbody>{linhas_status}</tbody>
     </table>
     {f"<div class='marco'>A coluna Fonte 10 inclui {segov_n} indicações da Fonte 10 - SEGOV ({brl(segov_v,0)}).</div>" if tem_segov else ""}
@@ -736,12 +724,10 @@ html = f"""<!DOCTYPE html>
       <thead><tr><th>Município</th><th class="num">Previsto no plano</th><th class="num">Mapeado</th><th class="num">Pago</th><th>Execução</th></tr></thead>
       <tbody>{linhas_mun}</tbody>
     </table>
-    <div class="marco">Descontados os {plano_fora_n} itens fora do plano ({brl(plano_fora_v,0)}), a carteira ativa é de
-    <b>{brl(carteira_ativa,0)}</b>. {f"Foram desconsideradas {fora_acordo} indicações marcadas como fora do Acordo Sudeste." if fora_acordo else ""}</div>
-  </div>
+    
 
   <div class="rodape">
-    <span>Fonte: Monitoramento Fonte 95</span>
+    <span>Fonte: Monitoramento Fonte 95 (ASPAR)</span>
     <span>Elaboração: CMIR / Subsecretaria de Regionalização — SES-MG</span>
   </div>
 </div>
