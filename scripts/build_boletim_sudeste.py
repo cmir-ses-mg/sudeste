@@ -711,8 +711,7 @@ html = f"""<!DOCTYPE html>
       <thead><tr><th>Status em {DATA_STATUS}</th><th class="num">Ind.</th><th class="num">Valor total</th><th class="num">Fonte 95</th><th class="num">Fonte 10</th><th>Principais Objetos</th></tr></thead>
       <tbody>{linhas_status}</tbody>
     </table>
-    {f"<div class='marco'>A coluna Fonte 10 inclui {segov_n} indicações da Fonte 10 - SEGOV ({brl(segov_v,0)}).</div>" if tem_segov else ""}
-  </div>
+    
 
   <div class="sec">
     <div class="eyebrow arch barro">Pontos de atenção</div>
