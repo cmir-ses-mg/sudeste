@@ -69,15 +69,36 @@ STATUS_MAP = {
     'Regional vai pedir ofício para começarmos a rodar.': 'Aguardando ofício regional',
 }
 
-INSTR_COR = {'CONVÊNIO': '#1D9E75', 'RESOLUÇÃO': '#378ADD', 'RESOLUÇÃO UBS': '#EF9F27', 'EXECUÇÃO DIRETA': '#888780'}
-CARD_BG = {'CONVÊNIO': '#f0faf6', 'RESOLUÇÃO': '#eef5fd', 'RESOLUÇÃO UBS': '#fdf6ea'}
-CARD_BD = {'CONVÊNIO': '#9FE1CB', 'RESOLUÇÃO': '#B5D4F4', 'RESOLUÇÃO UBS': '#FAC775'}
-CARD_CT = {'CONVÊNIO': '#0F6E56', 'RESOLUÇÃO': '#185FA5', 'RESOLUÇÃO UBS': '#854F0B'}
-PILL_CLS = {'PAGO': 'pill-green', 'EM TRAMITAÇÃO': 'pill-blue', 'EM ANÁLISE PRÉVIA': 'pill-amber'}
+# ── Paleta do INSTRUMENTO/TIPO (o quê) — família violeta/rosa/terracota,
+# nunca reaproveita verde/azul/âmbar/teal, que são reservados ao STATUS. ──
+INSTR_COR = {'CONVÊNIO': '#7C5CFC', 'RESOLUÇÃO': '#DB4C77', 'RESOLUÇÃO UBS': '#B4633A', 'EXECUÇÃO DIRETA': '#64748B'}
+CARD_BG = {'CONVÊNIO': '#F5F2FF', 'RESOLUÇÃO': '#FDF1F5', 'RESOLUÇÃO UBS': '#FBF1EA', 'EXECUÇÃO DIRETA': '#F5F6F8'}
+CARD_BD = {'CONVÊNIO': '#D4C8FB', 'RESOLUÇÃO': '#F3C6D5', 'RESOLUÇÃO UBS': '#E8C4A8', 'EXECUÇÃO DIRETA': '#D4D8DF'}
+CARD_CT = {'CONVÊNIO': '#5B3FC7', 'RESOLUÇÃO': '#A6295A', 'RESOLUÇÃO UBS': '#8A4726', 'EXECUÇÃO DIRETA': '#475467'}
+
+# ── Paleta do STATUS (em que fase está) — verde/azul/âmbar/teal/pedra,
+# nunca reaproveita as cores acima do instrumento. ──
+PILL_CLS = {
+    'PAGO': 'pill-green', 'EM TRAMITAÇÃO': 'pill-blue', 'EM ANÁLISE PRÉVIA': 'pill-amber',
+    'AGUARDA CONVÊNIO PROJETO': 'pill-stone', 'EM EXECUÇÃO': 'pill-teal',
+}
 GRP_ORDER = ['PAGO', 'EM TRAMITAÇÃO', 'EM ANÁLISE PRÉVIA', 'AGUARDA CONVÊNIO PROJETO', 'EM EXECUÇÃO']
-GRP_BG = {'PAGO': '#f0faf6', 'EM TRAMITAÇÃO': '#eef5fd', 'EM ANÁLISE PRÉVIA': '#fdf6ea'}
-GRP_DOT = {'PAGO': '#1D9E75', 'EM TRAMITAÇÃO': '#378ADD', 'EM ANÁLISE PRÉVIA': '#EF9F27', 'AGUARDA CONVÊNIO PROJETO': '#B4B2A9'}
-GRP_TX = {'PAGO': '#0F6E56', 'EM TRAMITAÇÃO': '#185FA5', 'EM ANÁLISE PRÉVIA': '#854F0B'}
+STATUS_SLUG = {
+    'PAGO': 'pago', 'EM TRAMITAÇÃO': 'tramitacao', 'EM ANÁLISE PRÉVIA': 'analise',
+    'AGUARDA CONVÊNIO PROJETO': 'aguarda', 'EM EXECUÇÃO': 'execucao',
+}
+GRP_BG = {
+    'PAGO': '#f0faf6', 'EM TRAMITAÇÃO': '#eef5fd', 'EM ANÁLISE PRÉVIA': '#fdf6ea',
+    'AGUARDA CONVÊNIO PROJETO': '#F5F4F1', 'EM EXECUÇÃO': '#EDFAF8',
+}
+GRP_DOT = {
+    'PAGO': '#1D9E75', 'EM TRAMITAÇÃO': '#378ADD', 'EM ANÁLISE PRÉVIA': '#EF9F27',
+    'AGUARDA CONVÊNIO PROJETO': '#8A8577', 'EM EXECUÇÃO': '#0D9488',
+}
+GRP_TX = {
+    'PAGO': '#0F6E56', 'EM TRAMITAÇÃO': '#185FA5', 'EM ANÁLISE PRÉVIA': '#854F0B',
+    'AGUARDA CONVÊNIO PROJETO': '#5C584C', 'EM EXECUÇÃO': '#0F6B61',
+}
 ETAPA_COR = {
     'Resolução em cadastramento no SESResolve': '#378ADD',
     'ETAPA 7 - PUBLICADA - EM TRÂMITE DE CADASTRO E ADESÃO NO SES RESOLVE': '#1D9E75',
@@ -174,7 +195,8 @@ def carregar_dados(caminho_xlsx):
         micro = MICRO_MAP.get(trim(r[0]))
         plano_micro.append({
             'micro': micro, 'dest': trim(r[1]), 'val': r[2] or 0,
-            'status': trim(r[4]), 'obs': trim(r[6]) if len(r) > 6 else '',
+            'status': trim(r[4]), 'desc': trim(r[3]) if len(r) > 3 else '',
+            'obs': trim(r[6]) if len(r) > 6 else '',
         })
     return cons, plano_micro
 
@@ -224,7 +246,7 @@ def gerar_dashboard(cons, plano_micro, data_ref):
 
     # ── Por status ──
     st_grid = [('PAGO', '#1D9E75'), ('EM TRAMITAÇÃO', '#378ADD'), ('EM ANÁLISE PRÉVIA', '#EF9F27'),
-               ('EM EXECUÇÃO', '#888780'), ('AGUARDA CONVÊNIO PROJETO', '#B4B2A9')]
+               ('EM EXECUÇÃO', '#0D9488'), ('AGUARDA CONVÊNIO PROJETO', '#8A8577')]
     grid_html = ''
     for s, cor in st_grid:
         t_ = [r for r in cons if ST(r) == s]
@@ -269,11 +291,11 @@ def gerar_dashboard(cons, plano_micro, data_ref):
 
         # ── detalhe expansível: mesma lógica de antes, agrupado por status literal ──
         present = [s for s in GRP_ORDER if any(ST(r) == s for r in items)]
+        status_slugs = ' '.join(STATUS_SLUG.get(s, '') for s in present)
         grupos = ''
         for idx_s, s in enumerate(present):
             g = sorted([r for r in items if ST(r) == s], key=lambda r: -VAL(r))
             gv = sum(VAL(r) for r in g)
-            open_a = ' open' if idx_s == 0 else ''
             cards = ''
             for r in g:
                 instr = san(r[0]); numero = san(r[1]); numero = '' if numero.upper() == 'NA' else numero
@@ -299,7 +321,7 @@ def gerar_dashboard(cons, plano_micro, data_ref):
                 cards += c + '</div></div>'
             gtx = GRP_TX.get(s, '#5F5E5A')
             grupos += (
-                f"<details class='st-grupo' style='border-color:{GRP_DOT.get(s,'#888780')}33'{open_a}>"
+                f"<details class='st-grupo' style='border-color:{GRP_DOT.get(s,'#888780')}33'>"
                 f"<summary class='st-grupo-hdr' style='background:{GRP_BG.get(s,'#f5f5f4')}'>"
                 f"<div class='st-grupo-left'><div class='st-grupo-dot' style='background:{GRP_DOT.get(s,'#888780')}'></div>"
                 f"<span class='st-grupo-nome' style='color:{gtx}'>{cap(s)}</span></div>"
@@ -309,12 +331,12 @@ def gerar_dashboard(cons, plano_micro, data_ref):
             )
 
         mun_html += (
-            f"<details class='brow'><summary class='bhead mun-cols'>"
+            f"<details class='brow' data-nome=\"{san(mun)}\" data-status='{status_slugs}'><summary class='bhead mun-cols'>"
             f"<div class='bleft'><div class='bav'>{ini}</div><div class='binfo'><div class='bnome'>{cap(mun)}</div>"
             f"<div class='bmini-bar'>{mini}</div></div></div>"
-            f"<div class='mun-col'><div class='mun-col-lbl'>Plano inicial</div><div class='mun-col-val'>{plano_inicial_txt}</div></div>"
-            f"<div class='mun-col'><div class='mun-col-lbl'>Pleito mapeado</div><div class='mun-col-val' style='color:#185FA5'>{fmtM(v_mapeado)}</div></div>"
-            f"<div class='mun-col'><div class='mun-col-lbl'>Em tramitação</div><div class='mun-col-val' style='color:#8A5A17'>{fmtM(v_tram) if v_tram else '—'}</div></div>"
+            f"<div class='mun-col mun-h-plano'><div class='mun-col-lbl'>Plano inicial</div><div class='mun-col-val'>{plano_inicial_txt}</div></div>"
+            f"<div class='mun-col mun-h-mapeado'><div class='mun-col-lbl'>Pleito mapeado</div><div class='mun-col-val' style='color:#185FA5'>{fmtM(v_mapeado)}</div></div>"
+            f"<div class='mun-col mun-h-tram'><div class='mun-col-lbl'>Em tramitação</div><div class='mun-col-val' style='color:#8A5A17'>{fmtM(v_tram) if v_tram else '—'}</div></div>"
             f"<div class='mun-col'><div class='mun-col-lbl'>Pago/Execução</div><div class='mun-col-val' style='color:#0F6E56'>{fmtM(v_pago) if v_pago else '—'}</div></div>"
             f"<div class='bchevron'>›</div></summary><div class='bdet'><div class='acao-lista'>{grupos}</div></div></details>"
         )
@@ -327,6 +349,11 @@ def gerar_dashboard(cons, plano_micro, data_ref):
             continue
         etapas[trim(r[9])].append(r)
 
+    status_presentes = [s for s in GRP_ORDER if any(ST(r) == s for r in cons)]
+    status_chips_html = ''.join(
+        f"<button type='button' class='dp-chip' data-status='{STATUS_SLUG[s]}' onclick='filtrarStatusMun(this)'>{cap(s)}</button>"
+        for s in status_presentes
+    )
     html = f"""<div class='top'>
   <div class='fonte-badge'>Fonte 95 — Emendas Parlamentares</div>
   <div class='top-titulo'>Monitoramento Consolidado</div>
@@ -392,17 +419,28 @@ def gerar_dashboard(cons, plano_micro, data_ref):
 <div class='card' style='margin-top:14px'>
   <div class='card-hdr'>
     <span class='card-titulo'>Municípios e indicações</span>
-    <span class='pill pill-blue'>{num_mun} municípios</span>
+    <span class='pill pill-blue' id='mun-contagem'>{num_mun} municípios</span>
+  </div>
+  <div class='dp-filtros'>
+    <div class='dp-search'>
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'></circle><line x1='21' y1='21' x2='16.65' y2='16.65'></line></svg>
+      <input type='text' id='mun-busca' placeholder='Buscar município…' oninput='filtrarMunicipios()' autocomplete='off'>
+    </div>
+    <div class='dp-chips' id='mun-chips'>
+      <button type='button' class='dp-chip ativo' data-status='todos' onclick='filtrarStatusMun(this)'>Todos</button>
+      {status_chips_html}
+    </div>
   </div>
   <div class='mun-cols-head'>
     <div></div>
-    <div>Plano inicial</div>
-    <div>Pleito mapeado</div>
-    <div>Em tramitação</div>
+    <div class='mun-h-plano'>Plano inicial</div>
+    <div class='mun-h-mapeado'>Pleito mapeado</div>
+    <div class='mun-h-tram'>Em tramitação</div>
     <div>Pago/Execução</div>
     <div></div>
   </div>
-  <div>{mun_html}</div>
+  <div id='mun-linhas'>{mun_html}</div>
+  <div class='dp-vazio' id='mun-vazio-filtro' style='display:none'>Nenhum município encontrado para esse filtro.</div>
 </div>
 """
     return html
@@ -453,13 +491,13 @@ def gerar_depara(cons, plano_micro, data_ref):
         else:
             diff_txt = ('▲ +' if diff >= 0 else '▼ −') + 'R$ ' + fmt(abs(diff) / 1e6, "0.00") + ' mi (' + ('+' if diff >= 0 else '−') + fmt(abs(pct), "0.0") + '%)'
         if para_v == 0:
-            sit, sit_bg, sit_cor, diff_cor = 'Ainda não mapeado', '#F1EFE8', '#5F5E5A', '#94a3b8'
+            sit, sit_bg, sit_cor, diff_cor, sit_slug = 'Ainda não mapeado', '#F1EFE8', '#5F5E5A', '#94a3b8', 'nao-mapeado'
         elif abs(pct) <= LIMIAR_PCT:
-            sit, sit_bg, sit_cor, diff_cor = 'Dentro do previsto', '#E1F5EE', '#0F6E56', '#64748b'
+            sit, sit_bg, sit_cor, diff_cor, sit_slug = 'Dentro do previsto', '#E1F5EE', '#0F6E56', '#64748b', 'dentro'
         elif pct > LIMIAR_PCT:
-            sit, sit_bg, sit_cor, diff_cor = 'Acima do previsto', '#FDF0DD', '#8A5A17', '#BA7517'
+            sit, sit_bg, sit_cor, diff_cor, sit_slug = 'Acima do previsto', '#FDF0DD', '#8A5A17', '#BA7517', 'acima'
         else:
-            sit, sit_bg, sit_cor, diff_cor = 'Abaixo do previsto', '#FCEBEB', '#791F1F', '#C0392B'
+            sit, sit_bg, sit_cor, diff_cor, sit_slug = 'Abaixo do previsto', '#FCEBEB', '#791F1F', '#C0392B', 'abaixo'
 
         itens_plan = sorted([r for r in plano_micro if r['micro'] == m], key=lambda r: -r['val'])
         itens_exec = exec_tbl.get(m, [])
@@ -485,14 +523,16 @@ def gerar_depara(cons, plano_micro, data_ref):
             gv = sum(r['val'] for r, _ in itens_lbl)
             cards_lbl = ''
             for r, remapeado in itens_lbl:
+                desc_html = f"<div class='dp-item-desc'>{r['desc']}</div>" if r['desc'] else ''
                 obs_html = f" <span class='dp-item-obs'>{r['obs']}</span>" if r['obs'] else ''
                 cards_lbl += (
                     f"<div class='dp-item'><div class='dp-item-top'><span class='dp-item-dest'>{r['dest']}</span>"
                     f"<span class='dp-item-val'>R$ {fmt(r['val'],'#,##0.00')}</span></div>"
+                    f"{desc_html}"
                     f"<div class='dp-item-meta'>{obs_html}</div></div>"
                 )
             plan_groups_html += (
-                f"<details class='st-grupo' style='border-color:{tx}33'{' open' if idx_lbl == 0 else ''}>"
+                f"<details class='st-grupo' style='border-color:{tx}33'>"
                 f"<summary class='st-grupo-hdr' style='background:{bg}'>"
                 f"<div class='st-grupo-left'><div class='st-grupo-dot' style='background:{tx}'></div>"
                 f"<span class='st-grupo-nome' style='color:{tx}'>{label}</span></div>"
@@ -532,7 +572,7 @@ def gerar_depara(cons, plano_micro, data_ref):
                 cards_exec += c + '</div></div>'
             gtx = GRP_TX.get(st, '#5F5E5A')
             exec_groups_html += (
-                f"<details class='st-grupo' style='border-color:{GRP_DOT.get(st,'#888780')}33'{' open' if idx_s == 0 else ''}>"
+                f"<details class='st-grupo' style='border-color:{GRP_DOT.get(st,'#888780')}33'>"
                 f"<summary class='st-grupo-hdr' style='background:{GRP_BG.get(st,'#f5f5f4')}'>"
                 f"<div class='st-grupo-left'><div class='st-grupo-dot' style='background:{GRP_DOT.get(st,'#888780')}'></div>"
                 f"<span class='st-grupo-nome' style='color:{gtx}'>{cap(st)}</span></div>"
@@ -545,7 +585,7 @@ def gerar_depara(cons, plano_micro, data_ref):
 
         cnt_plan, cnt_exec = len(itens_plan), len(itens_exec)
         rows += (
-            f"<details class='dp-item-wrap'><summary class='dp-row'>"
+            f"<details class='dp-item-wrap' data-nome=\"{san(m)}\" data-sit='{sit_slug}'><summary class='dp-row'>"
             f"<div class='dp-cell dp-nome'><span class='dp-chevron'>›</span>{m}</div>"
             f"<div class='dp-cell dp-num'>{de_txt}</div><div class='dp-cell dp-num'>{para_txt}</div>"
             f"<div class='dp-cell dp-num' style='color:{diff_cor};font-weight:600;'>{diff_txt}</div>"
@@ -587,7 +627,20 @@ def gerar_depara(cons, plano_micro, data_ref):
 <div class='card'>
   <div class='card-hdr'>
     <span class='card-titulo'>previsto × executado (por microrregião/temática)</span>
-    <span class='pill pill-blue'>{len(dot)} linhas do plano</span>
+    <span class='pill pill-blue' id='dp-contagem'>{len(dot)} linhas do plano</span>
+  </div>
+  <div class='dp-filtros'>
+    <div class='dp-search'>
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'></circle><line x1='21' y1='21' x2='16.65' y2='16.65'></line></svg>
+      <input type='text' id='dp-busca' placeholder='Buscar microrregião…' oninput='filtrarDePara()' autocomplete='off'>
+    </div>
+    <div class='dp-chips' id='dp-chips'>
+      <button type='button' class='dp-chip ativo' data-sit='todos' onclick='filtrarSit(this)'>Todos</button>
+      <button type='button' class='dp-chip' data-sit='dentro' onclick='filtrarSit(this)'>Dentro do previsto</button>
+      <button type='button' class='dp-chip' data-sit='acima' onclick='filtrarSit(this)'>Acima do previsto</button>
+      <button type='button' class='dp-chip' data-sit='abaixo' onclick='filtrarSit(this)'>Abaixo do previsto</button>
+      <button type='button' class='dp-chip' data-sit='nao-mapeado' onclick='filtrarSit(this)'>Ainda não mapeado</button>
+    </div>
   </div>
   <div class='dp-head'>
     <div>Microrregião / Temática</div>
@@ -597,7 +650,8 @@ def gerar_depara(cons, plano_micro, data_ref):
     <div>Pago</div>
     <div>Status</div>
   </div>
-  <div>{rows}</div>
+  <div id='dp-linhas'>{rows}</div>
+  <div class='dp-vazio' id='dp-vazio-filtro' style='display:none'>Nenhuma microrregião encontrada para esse filtro.</div>
   <div class='legenda-sit'>
     <span><span class='leg-dot' style='background:#B4B2A9'></span>Ainda não mapeado no monitoramento</span>
     <span><span class='leg-dot' style='background:#1D9E75'></span>Dentro do previsto (±{LIMIAR_PCT}%)</span>
@@ -618,23 +672,24 @@ def gerar_depara(cons, plano_micro, data_ref):
 # ─────────────────────────────────────────────────────────────────────
 
 CSS = """
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { min-height: 100%; }
   body {
-    font-family: Segoe UI, sans-serif; color: #1e293b; font-size: 14px;
+    font-family: 'Inter', 'Segoe UI', sans-serif; color: #1e293b; font-size: 14px;
+    -webkit-font-smoothing: antialiased;
     background-color: #ffffff;
     background-image: url('assets/sudeste_map.webp');
     background-repeat: no-repeat;
     background-position: center 90px;
     background-size: min(1400px, 92%) auto;
-    background-attachment: fixed;
   }
   body::before {
     content: ''; position: fixed; inset: 0;
-    background: rgba(255, 255, 255, 0.12); pointer-events: none; z-index: 0;
+    background: rgba(255, 255, 255, 0.35); pointer-events: none; z-index: 0;
   }
   .page { max-width: 1180px; margin: 0 auto; padding: 15px 10px; position: relative; z-index: 1; }
-  .top { background: rgba(255,255,255,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+  .top { background: rgba(255,255,255,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(15,23,42,0.03), 0 12px 28px -18px rgba(15,23,42,0.18); }
   .fonte-badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 11px; border-radius: 12px; background: #E6F1FB; color: #0C447C; margin-bottom: 8px; }
   .top-titulo { font-size: 20px; font-weight: 500; color: #1e293b; margin-bottom: 2px; }
   .top-sub { font-size: 12px; color: #94a3b8; margin-bottom: 14px; }
@@ -652,12 +707,15 @@ CSS = """
   .pill-green { background: #E1F5EE; color: #0F6E56; }
   .pill-amber { background: #FAEEDA; color: #633806; }
   .pill-gray { background: #F1EFE8; color: #5F5E5A; }
+  .pill-teal { background: #EDFAF8; color: #0F6B61; }
+  .pill-stone { background: #F5F4F1; color: #5C584C; }
   .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
-  .kpi { background: rgba(255,255,255,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0.5px solid #e2e8f0; border-radius: 10px; padding: 13px 16px; }
-  .kpi-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
-  .kpi-val { font-size: 19px; font-weight: 500; }
+  .kpi { background: rgba(255,255,255,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.03), 0 10px 24px -18px rgba(15,23,42,0.16); transition: transform .15s ease, box-shadow .15s ease; }
+  .kpi:hover { transform: translateY(-1px); box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 14px 28px -16px rgba(15,23,42,0.22); }
+  .kpi-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; font-weight: 600; }
+  .kpi-val { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
   .kpi-sub { font-size: 10px; color: #94a3b8; margin-top: 3px; }
-  .card { background: rgba(255,255,255,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0.5px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+  .card { background: rgba(255,255,255,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(15,23,42,0.03), 0 12px 28px -18px rgba(15,23,42,0.16); }
   .card-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; padding-bottom: 10px; border-bottom: 0.5px solid #f1f5f9; }
   .card-titulo { font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
@@ -671,16 +729,19 @@ CSS = """
   .instr-bar-wrap { width: 70px; height: 5px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
   .instr-bar-fill { height: 100%; border-radius: 3px; }
   .st-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .st-pill { display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border-radius: 8px; padding: 10px 12px; }
+  .st-pill { display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border-radius: 12px; padding: 10px 12px; transition: background .15s ease; }
+  .st-pill:hover { background: #f1f5f9; }
   .st-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
   .st-info { flex: 1; }
   .st-nome { font-size: 11px; color: #64748b; margin-bottom: 2px; }
   .st-val { font-size: 14px; font-weight: 500; color: #1e293b; }
   .st-cnt { font-size: 10px; color: #94a3b8; margin-top: 1px; }
   .mun-cols-head { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 24px; gap: 8px; padding: 6px 0 8px; font-size: 9px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; }
+  .mun-cols-head > div { text-align: right; }
   .brow { border-bottom: 0.5px solid #f1f5f9; }
   .brow:last-child { border-bottom: none; }
-  .bhead.mun-cols { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 24px; gap: 8px; align-items: center; padding: 10px 0; cursor: pointer; }
+  .bhead.mun-cols { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 24px; gap: 8px; align-items: center; padding: 10px 0; cursor: pointer; list-style: none; }
+  .bhead.mun-cols::-webkit-details-marker { display: none; }
   .bhead:hover .bnome { color: #378ADD; }
   .bleft { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
   .bav { width: 34px; height: 34px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #0C447C; flex-shrink: 0; }
@@ -694,9 +755,10 @@ CSS = """
   .bchevron { font-size: 18px; color: #cbd5e1; transition: transform .2s; flex-shrink: 0; line-height: 1; }
   details.brow[open] > summary .bchevron { transform: rotate(90deg); }
   .bdet { padding: 0 0 14px 46px; }
-  details.st-grupo { margin-bottom: 6px; border-radius: 8px; overflow: hidden; border: 0.5px solid #e2e8f0; }
+  details.st-grupo { margin-bottom: 6px; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; }
   details.st-grupo:last-child { margin-bottom: 0; }
-  .st-grupo-hdr { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; gap: 10px; user-select: none; }
+  .st-grupo-hdr { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; gap: 10px; user-select: none; list-style: none; }
+  .st-grupo-hdr::-webkit-details-marker { display: none; }
   .st-grupo-left { display: flex; align-items: center; gap: 8px; }
   .st-grupo-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .st-grupo-nome { font-size: 12px; font-weight: 500; }
@@ -707,7 +769,8 @@ CSS = """
   details.st-grupo[open] > summary .st-grupo-chv { transform: rotate(90deg); }
   .st-grupo-body { padding: 0 8px 8px; }
   .acao-lista { margin-top: 4px; }
-  .acao-card { border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; border: 0.5px solid transparent; }
+  .acao-card { border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; border: 0.5px solid transparent; transition: box-shadow .15s ease; }
+  .acao-card:hover { box-shadow: 0 4px 14px -10px rgba(15,23,42,0.35); }
   .acao-card:last-child { margin-bottom: 0; }
   .acao-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
   .acao-tipo { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
@@ -723,6 +786,16 @@ CSS = """
   .resumo-item { background:transparent; padding:10px 10px; border-radius:10px; text-align: center; }
   .resumo-lbl { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
   .resumo-val { font-size: 20px; font-weight: 700; }
+  .dp-filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 4px 8px 14px; }
+  .dp-search { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
+  .dp-search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8; pointer-events: none; }
+  .dp-search input { width: 100%; font-family: inherit; font-size: 12px; color: #1e293b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 8px 12px 8px 32px; outline: none; transition: border-color .15s, background .15s, box-shadow .15s; }
+  .dp-search input:focus { border-color: #378ADD; background: #fff; box-shadow: 0 0 0 3px rgba(55,138,221,0.12); }
+  .dp-search input::placeholder { color: #94a3b8; }
+  .dp-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dp-chip { font-family: inherit; font-size: 11px; font-weight: 600; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 7px 13px; cursor: pointer; transition: background .15s, color .15s, border-color .15s, box-shadow .15s; white-space: nowrap; }
+  .dp-chip:hover { background: #eef2f7; }
+  .dp-chip.ativo { background: #0C447C; border-color: #0C447C; color: #fff; box-shadow: 0 6px 14px -8px rgba(12,68,124,0.55); }
   .dp-head { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.3fr 1fr 1.3fr; gap: 8px; padding: 10px 8px; font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #e2e8f0; }
   details.dp-item-wrap { border-bottom: 0.5px solid #f1f5f9; }
   details.dp-item-wrap:last-child { border-bottom: none; }
@@ -735,30 +808,32 @@ CSS = """
   .dp-nome { font-weight: 600; color: #1e293b; }
   .dp-num { font-variant-numeric: tabular-nums; color: #475569; }
   .dp-detail { display: flex; flex-direction: column; gap: 4px; padding: 4px 12px 16px 30px; background: rgba(250,251,252,0.6); }
-  details.dp-panel { background: #fff; border: 0.5px solid #e2e8f0; border-radius: 8px; }
+  details.dp-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(15,23,42,0.02); }
   summary.dp-panel-hdr { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px 14px; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; list-style: none; }
   summary.dp-panel-hdr::-webkit-details-marker { display: none; }
   .dp-panel-chv { font-size: 15px; color: #cbd5e1; transition: transform .15s; }
   details.dp-panel[open] > summary .dp-panel-chv { transform: rotate(90deg); }
   details.dp-panel[open] > summary.dp-panel-hdr { border-bottom: 0.5px solid #f1f5f9; }
   .dp-panel-body { padding: 10px 14px 14px; }
-  .dp-item { background: #fff; border: 0.5px solid #e2e8f0; border-radius: 6px; padding: 7px 10px; margin-bottom: 6px; }
+  .dp-item { background: #fff; border: 0.5px solid #e2e8f0; border-radius: 8px; padding: 7px 10px; margin-bottom: 6px; transition: box-shadow .15s ease; }
+  .dp-item:hover { box-shadow: 0 4px 14px -10px rgba(15,23,42,0.35); }
   .dp-item:last-child { margin-bottom: 0; }
   .dp-item-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
   .dp-item-dest { font-size: 11px; color: #1e293b; line-height: 1.35; }
   .dp-item-val { font-size: 11px; font-weight: 600; color: #1e293b; white-space: nowrap; }
   .dp-item-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dp-item-desc { font-size: 10.5px; color: #64748b; line-height: 1.35; margin: 2px 0 4px; }
   .dp-item-obs { font-size: 10px; color: #94a3b8; }
   .dp-vazio { font-size: 11px; color: #94a3b8; font-style: italic; padding: 8px 0; }
   .legenda-sit { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10px; color: #64748b; margin-top: 10px; }
   .leg-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
   .nota { font-size: 10px; color: #94a3b8; line-height: 1.5; }
   .app-header { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 22px 20px 4px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .app-title { font-size: 20px; font-weight: 700; letter-spacing: 0.03em; color: #0C447C; text-transform: uppercase; }
-  .nav-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: 20px; border: 1px solid #378ADD; background: #fff; color: #0C447C; cursor: pointer; transition: background .15s, color .15s; text-decoration: none; }
-  .nav-btn:hover { background: #378ADD; color: #fff; }
+  .app-title { font-size: 20px; font-weight: 800; letter-spacing: 0.03em; color: #0C447C; text-transform: uppercase; }
+  .nav-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: 20px; border: 1px solid #378ADD; background: #fff; color: #0C447C; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s, transform .15s; text-decoration: none; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+  .nav-btn:hover { background: #378ADD; color: #fff; box-shadow: 0 8px 18px -10px rgba(55,138,221,0.6); transform: translateY(-1px); }
   .nav-btn.voltar { border-color: #cbd5e1; color: #5F5E5A; }
-  .nav-btn.voltar:hover { background: #5F5E5A; border-color: #5F5E5A; color: #fff; }
+  .nav-btn.voltar:hover { background: #5F5E5A; border-color: #5F5E5A; color: #fff; box-shadow: 0 8px 18px -10px rgba(95,94,90,0.5); }
   .view { position: relative; z-index: 1; display: none; }
   .view.ativa { display: block; }
   @media (max-width: 800px) {
@@ -770,8 +845,11 @@ CSS = """
     .dp-head > div:nth-child(4), .dp-head > div:nth-child(5), .dp-head > div:nth-child(6),
     summary.dp-row > div:nth-child(4), summary.dp-row > div:nth-child(5), summary.dp-row > div:nth-child(6) { display: none; }
     .mun-cols-head, .bhead.mun-cols { grid-template-columns: 1.6fr 1fr 1fr 20px; }
-    .mun-cols-head > div:nth-child(4), .bhead.mun-cols > .mun-col:nth-of-type(3) { display: none; }
+    .mun-h-mapeado, .mun-h-tram { display: none; }
     .app-header { justify-content: center; text-align: center; }
+    .dp-filtros { flex-direction: column; align-items: stretch; }
+    .dp-search { max-width: none; }
+    .dp-chips { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
   }
 """
 
@@ -836,6 +914,63 @@ function mostrarPagina(nome) {{
   document.getElementById('nav-dashboard').style.display = nome === 'dashboard' ? 'block' : 'none';
   document.getElementById('nav-depara').style.display = nome === 'depara' ? 'block' : 'none';
   window.scrollTo(0, 0);
+}}
+
+// ── Filtros da tabela "previsto × executado" (De/Para) ──────────────
+function normalizarTexto(s) {{
+  return (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}}
+let dpSitAtiva = 'todos';
+function filtrarSit(botao) {{
+  dpSitAtiva = botao.getAttribute('data-sit');
+  document.querySelectorAll('.dp-chip').forEach(function(c) {{ c.classList.toggle('ativo', c === botao); }});
+  filtrarDePara();
+}}
+function filtrarDePara() {{
+  const campoBusca = document.getElementById('dp-busca');
+  const q = normalizarTexto(campoBusca ? campoBusca.value : '');
+  const linhas = document.querySelectorAll('#dp-linhas > .dp-item-wrap');
+  let visiveis = 0;
+  linhas.forEach(function(li) {{
+    const nome = normalizarTexto(li.getAttribute('data-nome'));
+    const sit = li.getAttribute('data-sit');
+    const combinaTexto = !q || nome.indexOf(q) !== -1;
+    const combinaSit = dpSitAtiva === 'todos' || sit === dpSitAtiva;
+    const mostrar = combinaTexto && combinaSit;
+    li.style.display = mostrar ? '' : 'none';
+    if (mostrar) visiveis++;
+  }});
+  const vazio = document.getElementById('dp-vazio-filtro');
+  if (vazio) vazio.style.display = visiveis === 0 ? 'block' : 'none';
+  const contagem = document.getElementById('dp-contagem');
+  if (contagem) contagem.textContent = visiveis + (visiveis === 1 ? ' linha do plano' : ' linhas do plano');
+}}
+
+// ── Filtro da tabela "Municípios e indicações" (página inicial) ─────
+let munStatusAtivo = 'todos';
+function filtrarStatusMun(botao) {{
+  munStatusAtivo = botao.getAttribute('data-status');
+  document.querySelectorAll('#mun-chips .dp-chip').forEach(function(c) {{ c.classList.toggle('ativo', c === botao); }});
+  filtrarMunicipios();
+}}
+function filtrarMunicipios() {{
+  const campoBusca = document.getElementById('mun-busca');
+  const q = normalizarTexto(campoBusca ? campoBusca.value : '');
+  const linhas = document.querySelectorAll('#mun-linhas > .brow');
+  let visiveis = 0;
+  linhas.forEach(function(li) {{
+    const nome = normalizarTexto(li.getAttribute('data-nome'));
+    const statusLinha = (li.getAttribute('data-status') || '').split(' ');
+    const combinaTexto = !q || nome.indexOf(q) !== -1;
+    const combinaStatus = munStatusAtivo === 'todos' || statusLinha.indexOf(munStatusAtivo) !== -1;
+    const mostrar = combinaTexto && combinaStatus;
+    li.style.display = mostrar ? '' : 'none';
+    if (mostrar) visiveis++;
+  }});
+  const vazio = document.getElementById('mun-vazio-filtro');
+  if (vazio) vazio.style.display = visiveis === 0 ? 'block' : 'none';
+  const contagem = document.getElementById('mun-contagem');
+  if (contagem) contagem.textContent = visiveis + (visiveis === 1 ? ' município' : ' municípios');
 }}
 </script>
 
